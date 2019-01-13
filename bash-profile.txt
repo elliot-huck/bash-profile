@@ -1,0 +1,270 @@
+
+# general aliases
+alias cdw="cd ~/workspace && ls"
+alias mk="mkdir"
+alias coder="code -r"
+alias bashconfig="code -r ~/.bashrc"
+alias src="source ~/.bashrc"
+
+alias echotest="echo 'hello' && echo 'goodbye'"
+
+#capstone aliases
+alias cdc="cd ~/workspace/capstone/vocabulous"
+alias cdra="cd ~/workspace/capstone/recipease/API/RecipEaseAPI/ && start RecipEaseAPI.sln"
+alias cdrc="cd ~/workspace/capstone/recipease/client/ && code -r ."
+alias database="cd ~/workspace/capstone/recipease/API/RecipEaseAPI/ && dotnet build"
+alias recipease="cd ~/workspace/capstone/recipease/client/ && npm start"
+
+#deployment alias
+alias deploy="rm -r ~/workspace/capstone/deploy-recipease/* && cp -a ~/workspace/capstone/recipease/client/build/. ~/workspace/capstone/deploy-recipease"
+
+#git aliases
+alias gs="git status"
+alias ga="git add"
+alias gc="git commit -m"
+alias gac="git add . && git commit -m"
+alias gch="git checkout"
+
+alias gcamend="git commit --amend"
+
+alias glog="git log --max-count=20 --oneline --reverse"
+alias glast="git log --max-count=5 --author=Elliot --oneline --reverse"
+
+alias gpush="git push origin" #takes bransh name as param
+alias gpull="git pull origin"
+
+alias gmerge="git merge --no-edit"
+
+alias gfetch="git fetch --all" 
+alias gbranch="git branch -a"
+alias gtrim="git branch | egrep -v '(master|\*)' | xargs git branch -D"
+
+alias gremote="git remote -v"
+alias gremset="git remote set-url origin"
+
+alias jedi="git pull origin"
+alias sith="git push origin"
+
+#grunt aliases
+alias sgr="cd src && grunt"
+alias hsd="cd dist && hs"
+
+#json server aliases
+alias json="json-server -p 5050 -w"
+alias ajs="cd api && json-server -w database.json"
+alias capson="cd src && cd Api && json-server -p 5050 -w database.json"
+
+#react aliases
+alias react="create-react-app"
+
+#dotnet aliases
+alias dnc="dotnet new console"
+alias codec="code -r Program.cs"
+alias run="dotnet run"
+alias vtuple="dotnet add package System.ValueTuple && dotnet restore"
+
+#c-sharp aliases
+alias appsettings="cp ~/workspace/template-files/appsettings.json ."
+alias studio="start *.sln"
+
+
+
+
+#functions ($0 refers to the function alias itself)
+mg() {
+  [ -n "$1" ] && mkdir -p "$@" && cd $_;
+}
+
+cdl() {
+	[ -n "$1" ] && cd "$@" && ls;
+
+}
+
+#git functions
+gclone() {	# this function clones a repo & cd into the directory created
+  REPO=$1 # GitHub repo URL or SSH
+	BASENAME=$(basename $REPO)
+	FILENAME=${BASENAME%.*}
+  git clone $REPO
+  cd $FILENAME
+}
+
+#grunt functions
+fullSetup() {
+	cp ~/workspace/template-files/.gitignore ./
+	cp ~/workspace/template-files/README.md ./
+
+	mkdir dist
+
+	mkdir src && cd src
+	cp ~/workspace/template-files/index.html ./
+	cp ~/workspace/template-files/package.json ./
+	npm install
+	cp ~/workspace/template-files/Gruntfile.js ./
+	cp ~/workspace/template-files/.eslintrc ./
+
+	mkdir scripts && cd scripts
+	touch main.js
+	cd ..
+
+	mkdir styles && cd styles
+	touch main.css
+	cd .. && cd ..
+	code -r .
+}
+
+# automatically runs ssh agent
+env=~/.ssh/agent.env
+agent_load_env () { test -f "$env" && . "$env" >| /dev/null ; }
+agent_start () {
+    (umask 077; ssh-agent >| "$env")
+    . "$env" >| /dev/null ; }
+
+agent_load_env
+# agent_run_state: 0=agent running w/ key; 1=agent w/o key; 2= agent not running
+agent_run_state=$(ssh-add -l >| /dev/null 2>&1; echo $?)
+if [ ! "$SSH_AUTH_SOCK" ] || [ $agent_run_state = 2 ]; then
+    agent_start
+    ssh-add
+elif [ "$SSH_AUTH_SOCK" ] && [ $agent_run_state = 1 ]; then
+    ssh-add
+fi
+unset env
+
+
+#Custom prompt copied from git-prompt.sh & edited
+if test -f /etc/profile.d/git-sdk.sh
+then
+	TITLEPREFIX=SDK-${MSYSTEM#MINGW}
+else
+	TITLEPREFIX=$MSYSTEM
+fi
+
+if test -f ~/.config/git/git-prompt.sh
+then
+	. ~/.config/git/git-prompt.sh
+else
+	PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]' # set window title
+	PS1="$PS1"'\n'                 # new line
+	PS1="$PS1"'\[\033[32m\]'       # change to green
+	PS1="$PS1"'[\u] '             # user@host<space> (changed to [user])
+	# PS1="$PS1"'\[\033[35m\]'       # change to purple
+	# PS1="$PS1"'$MSYSTEM '          # show MSYSTEM
+	PS1="$PS1"'\[\033[33m\]'       # change to brownish yellow
+	PS1="$PS1"'\w\n'                 # current working directory
+	if test -z "$WINELOADERNOEXEC"
+	then
+		GIT_EXEC_PATH="$(git --exec-path 2>/dev/null)"
+		COMPLETION_PATH="${GIT_EXEC_PATH%/libexec/git-core}"
+		COMPLETION_PATH="${COMPLETION_PATH%/lib/git-core}"
+		COMPLETION_PATH="$COMPLETION_PATH/share/git/completion"
+		if test -f "$COMPLETION_PATH/git-prompt.sh"
+		then
+			. "$COMPLETION_PATH/git-completion.bash"
+			. "$COMPLETION_PATH/git-prompt.sh"
+			PS1="$PS1"'\[\033[96m\]'  # change color to light cyan
+			PS1="$PS1"'`__git_ps1`'   # bash function
+		fi
+	fi
+	PS1="$PS1"'\[\033[0m\]'        # change color to white
+	PS1="$PS1"'\n'                 # new line
+	PS1="$PS1"'$ '                 # prompt: always $
+fi
+
+MSYS2_PS1="$PS1"               # for detection by MSYS2 SDK's bash.basrc
+
+#DEPRECATED PROMPTS AND FUNCTIONS
+#---------------------------------
+# Previous Custom Prompt
+#\[\033[32m\] represents color
+#PS1="\[\033[32m\][\u] \[\033[33m\]\w \n\[\033[37m\]$ "
+#PS1="\[\033[32m\][\u] \[\033[33m\]\w \[\033[96m\]$(__git_ps1 ' (%s)') \n\[\033[37m\]\$ "
+
+# parse_git_branch() {
+#      git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+# }
+# export PS1="\[\033[32m\][\u] \[\033[33m\]\w \[\033[96m\]$(parse_git_branch) \n\[\033[37m\]\$ " #94 for light blue
+
+
+# mainSetup() { #run in overall project folder; ends in src
+# 	mkdir dist
+# 	mkdir src && cd src
+# 	cp ~/workspace/template-files/index.html ./
+# 	mkdir scripts && cd scripts
+# 	touch main.js
+# 	cd ..
+# 	mkdir styles && cd styles
+# 	touch main.css
+# 	cd .. && ls
+# }
+
+# gruntSetup() { #run in src after mainSetup
+# 	cd ..
+# 	cp ~/workspace/template-files/.gitignore ./
+# 	cp ~/workspace/template-files/README.md ./
+
+# 	cd src
+# 	cp ~/workspace/template-files/package.json ./
+# 	npm install
+
+# 	cp ~/workspace/template-files/Gruntfile.js ./
+# 	cp ~/workspace/template-files/.eslintrc ./
+# }
+
+# function gc() {
+#   MESSAGE=$1
+#   if [ -z "$MESSAGE" ]; then
+#     echo "Add a message"
+#     return 1
+#   fi
+#   git commit -m "$MESSAGE" # add -a here for it to auto-stage all modified files
+# }
+
+#gfirst() { # runs after gclone to initialize the default repo files
+# touch README.md;
+# # touch .gitignore;
+# # cat ~/gitignore-content.txt >> .gitignore
+# #cp ~/workspace/template-files/.gitignore ./;
+# git add README.md # .gitignore
+# git commit -m "First commit: Initialized README.md" #and .gitignore files;
+# git push origin master;
+# }
+
+# ginit() { # runs the gclone and then the gfirst function
+# 	REPO=$1 # GitHub repo URL or SSH
+# 	BASENAME=$(basename $REPO)
+# 	FILENAME=${BASENAME%.*}
+#   git clone $REPO
+#   cd $FILENAME
+# 	touch README.md;
+# 	cp ~/workspace/template-files/.gitignore ./
+# 	git add README.md .gitignore;
+# 	git commit -m "First commit: Initialized README.md and .gitignore files";
+# 	git push origin master;
+# }
+
+# ginitalt() { # this is really only useful for solo git repos
+# 	[ -n "$1" ];
+# 	touch README.md;
+# 	touch .gitignore;
+# 	echo "node_modules" >> .gitignore;
+# 	echo ".DS_Store" >> .gitignore;
+# 	git init;
+# 	git add README.md .gitignore
+# 	git commit -m "first commit";
+# 	git remote add origin "$1";
+# 	git push -u origin master;
+# } #needs to ignore node_modules, .DS_Store
+
+# gclonealt() {	# this function clones a repo & cd into the directory created
+#   REPO=$1 # GitHub repo URL or SSH
+#   CLONEPATH=$2 # Optional parameter to change directory name
+# 	CURRENTDIR=$pwd
+#   if [ -z $CLONEPATH ]; then
+#       # =${$(basename $1)/.git/}
+# 			CLONEPATH=${basename%.*}
+#   fi
+#   git clone $REPO $CLONEPATH
+#   #cd $CLONEPATH
+# 	echo $CLONEPATH
+# }
